@@ -1,0 +1,74 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/api/users/**
+          filters:
+            - AuthenticationFilter
+
+        - id: auction-service
+          uri: lb://auction-service
+          predicates:
+            - Path=/api/auctions/**
+          filters:
+            - AuthenticationFilter
+
+        - id: order-service
+          uri: lb://order-service
+          predicates:
+            - Path=/api/orders/**
+          filters:
+            - AuthenticationFilter
+
+        - id: message-service
+          uri: lb://message-service
+          predicates:
+            - Path=/api/messages/**
+          filters:
+            - AuthenticationFilter
+
+        - id: review-service
+          uri: lb://review-service
+          predicates:
+            - Path=/api/reviews/**
+          filters:
+            - AuthenticationFilter
+
+        - id: discovery-server
+          uri: http://localhost:8761
+          predicates:
+            - Path=/eureka/web
+          filters:
+            - SetPath=/
+
+        - id: discovery-server-static
+          uri: http://localhost:8761
+          predicates:
+            - Path=/eureka/**
+
+        - id: auth-service
+          uri: lb://auth-service
+          predicates:
+            - Path=/auth/**
+
+  application:
+    name: api-gateway
+
+eureka:
+  client:
+    service-url:
+      defaultZone : http://localhost:8761/eureka/
+
+logging:
+  level:
+    org:
+      springframework:
+        cloud:
+          gateway:
+            route:
+              RouteDefinitionLocation: INFO
+            nodeValue: TRACE
+    root: INFO

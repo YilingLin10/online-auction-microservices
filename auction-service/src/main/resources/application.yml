@@ -1,0 +1,34 @@
+spring:
+  application:
+    name: auction-service
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/auction-service
+    username: root
+    password: 10232312
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+  # Kafka producer properties
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring:
+          json:
+            type:
+              mapping: wde:com.yilinglin10.auctionservice.event.publish.WinnerDeterminedEvent,afe:com.yilinglin10.auctionservice.event.publish.AuctionFailedEvent,bpe:com.yilinglin10.auctionservice.event.publish.BidPlacedEvent
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka
+
+server:
+  port: 8083

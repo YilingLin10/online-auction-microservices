@@ -1,0 +1,11 @@
+rootProject.name = 'online-auction-system'
+include 'discovery-server'
+include 'api-gateway'
+include 'auth-service'
+include 'user-service'
+include 'auction-service'
+include 'order-service'
+include 'message-service'
+include 'review-service'
+include 'review-service'
+
