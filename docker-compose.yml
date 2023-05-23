@@ -1,6 +1,59 @@
 ---
 version: '3'
 services:
+  # MySQL Docker Compose Config
+  mysql-user-db:
+    container_name: mysql-user-db
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=user-service
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=password
+    ports:
+      - "3306:3306"
+    restart: unless-stopped
+
+  mysql-auction-db:
+    container_name: mysql-auction-db
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=auction-service
+      - MYSQL_USER=auction
+      - MYSQL_PASSWORD=password
+    ports:
+      - "3307:3306"
+    restart: unless-stopped
+
+  mysql-order-db:
+    container_name: mysql-order-db
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=order-service
+      - MYSQL_USER=order
+      - MYSQL_PASSWORD=password
+    ports:
+      - "3308:3306"
+    restart: unless-stopped
+
+  # MongoDB Docker Compose Config
+  mongo-review-db:
+    container_name: mongo-review-db
+    image: mongo:4.4.14-rc0-focal
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+
+  mongo-message-db:
+    container_name: mongo-message-db
+    image: mongo:4.4.14-rc0-focal
+    restart: unless-stopped
+    ports:
+      - "27018:27017"
+
+  # Zookeeper and Kafka configuration
   zookeeper:
     image: confluentinc/cp-zookeeper:7.3.2
     container_name: zookeeper
@@ -23,3 +76,125 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+
+  # Eureka Server
+  discovery-server:
+    build: ./discovery-server/
+    container_name: discovery-server
+    ports:
+      - "8761:8761"
+    expose:
+      - "8761"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+
+  api-gateway:
+    build: ./api-gateway/
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    expose:
+      - "8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=TRACE
+    depends_on:
+      - discovery-server
+
+  auth-service:
+    build: ./auth-service/
+    container_name: auth-service
+    ports:
+      - "8081:8080"
+    expose:
+      - "8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-user-db:3306/user-service?createDatabaseIfNotExist=true
+    depends_on:
+      - mysql-user-db
+      - discovery-server
+      - api-gateway
+
+  user-service:
+    build: ./user-service/
+    container_name: user-service
+    ports:
+      - "8082:8080"
+    expose:
+      - "8082"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-user-db:3306/user-service
+    depends_on:
+      - mysql-user-db
+      - discovery-server
+      - api-gateway
+      - auth-service
+
+  auction-service:
+    build: ./auction-service/
+    container_name: auction-service
+    ports:
+      - "8083:8080"
+    expose:
+      - "8083"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-auction-db:3306/auction-service?createDatabaseIfNotExist=true
+    depends_on:
+      - mysql-auction-db
+      - discovery-server
+      - api-gateway
+      - auth-service
+      - broker
+
+  order-service:
+    build: ./order-service/
+    container_name: order-service
+    ports:
+      - "8084:8080"
+    expose:
+      - "8084"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-order-db:3306/order-service?createDatabaseIfNotExist=true
+    depends_on:
+      - mysql-order-db
+      - discovery-server
+      - api-gateway
+      - auth-service
+      - broker
+
+
+  message-service:
+    build: ./message-service/
+    container_name: message-service
+    ports:
+      - "8085:8080"
+    expose:
+      - "8085"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - discovery-server
+      - api-gateway
+      - mongo-message-db
+      - auth-service
+      - broker
+
+  review-service:
+    build: ./review-service/
+    container_name: review-service
+    ports:
+      - "8086:8080"
+    expose:
+      - "8086"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - discovery-server
+      - api-gateway
+      - mongo-review-db
+      - auth-service
+      - broker

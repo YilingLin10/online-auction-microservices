@@ -44,6 +44,7 @@ public class MessageService{
                 .recipientId(Long.parseLong(result))
                 .subject(request.getTitle())
                 .content(request.getContent())
+                .timestamp(LocalDateTime.now())
                 .build();
         messageRepository.insert(message);
         return "successful";

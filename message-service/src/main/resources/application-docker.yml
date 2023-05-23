@@ -1,0 +1,15 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb://mongo-message-db:27017/message-service
+
+  kafka:
+    bootstrap-servers: broker:29092
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://discovery-server:8761/eureka
+
+server:
+  port: 8080
