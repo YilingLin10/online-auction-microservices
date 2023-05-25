@@ -27,7 +27,7 @@ public class AuthenticationControllerAdvice {
         return ResponseEntity.badRequest().body(response);
     }
 
-    @ExceptionHandler({DuplicateUsernameException.class, AuthenticationException.class})
+    @ExceptionHandler(DuplicateUsernameException.class)
     public ResponseEntity<Object> handleDuplicateUsernameException(RuntimeException exception) {
         Map<String, Object> response = new HashMap<>();
         response.put("error", exception.getMessage());

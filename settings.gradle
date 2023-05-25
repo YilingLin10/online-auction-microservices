@@ -7,5 +7,4 @@ include 'auction-service'
 include 'order-service'
 include 'message-service'
 include 'review-service'
-include 'review-service'
 

@@ -53,7 +53,7 @@ public class AuthenticationService {
     }
 
     private UserProfile mapRequestToEntity(RegistrationRequest request) {
-        Role userRole = roleRepository.findByName("ADMIN").orElseThrow(()-> null);
+        Role userRole = roleRepository.findByName("USER").orElseThrow(()-> null);
         UserProfile userProfile = new UserProfile();
         userProfile.setId(request.getId());
         userProfile.setUsername(request.getUsername());
