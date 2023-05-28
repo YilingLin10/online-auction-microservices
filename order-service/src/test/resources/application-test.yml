@@ -1,0 +1,9 @@
+eureka:
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+
+spring:
+  kafka:
+    consumer:
+      auto-offset-reset: earliest # for testing KafkaListener

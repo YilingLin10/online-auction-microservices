@@ -12,7 +12,7 @@ import java.util.Map;
 @ControllerAdvice
 public class OrderControllerAdvice {
     // ExceptionHandler for invalid user sending EditItemRequest
-    @ExceptionHandler({InvalidUserException.class, OrderDeadlineDueException.class})
+    @ExceptionHandler({InvalidUserException.class, OrderDeadlineDueException.class, IllegalArgumentException.class})
     public ResponseEntity<Object> handleInvalidSellerException(RuntimeException exception) {
         Map<String, Object> response = new HashMap<>();
         response.put("error", exception.getMessage());

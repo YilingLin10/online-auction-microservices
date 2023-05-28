@@ -78,7 +78,7 @@ public class OrderService {
         if (order.getStatus().equals(OrderStatus.PAYMENT_DUE) || order.getStatus().equals(OrderStatus.SHIPPING_DUE)) {
             throw new OrderDeadlineDueException(orderId, order.getStatus().getCode());
         }
-        if ((isValidSeller && !order.getStatus().equals(OrderStatus.AWAITING_PAYMENT)) || (isValidBuyer && !order.getStatus().equals(OrderStatus.AWAITING_SHIPMENT)) ) {
+        if ((isValidSeller && !order.getStatus().equals(OrderStatus.AWAITING_PAYMENT)) || (isValidBuyer && !order.getStatus().equals(OrderStatus.AWAITING_SHIPPING)) ) {
             return "cannot update order status";
         }
         order.setStatus(order.getStatus().next());
@@ -106,7 +106,7 @@ public class OrderService {
     }
 
     public List<OrderResponse> findByUserId(Long userId, Integer offset, Integer pageSize) {
-        Pageable pageable = PageRequest.of(offset, pageSize, Sort.by("deadline"));
+        Pageable pageable = PageRequest.of(offset, pageSize, Sort.by("createdAt"));
         List<Order> orders = orderRepository.findBySellerIdOrBuyerId(userId, userId, pageable);
         return orders.stream().map(this::mapEntityToDto).toList();
     }
@@ -114,7 +114,7 @@ public class OrderService {
     public List<OrderResponse> findByUserIdAndStatusIn(List<String> statusList, Long userId, Integer offset, Integer pageSize) {
         Pageable pageable = PageRequest.of(offset, pageSize, Sort.by("createdAt"));
         List<OrderStatus> orderStatusList = statusList.stream().map(this::convertToEnumStatus).toList();
-        List<Order> orders = orderRepository.findBySellerIdOrBuyerIdAndStatusIn(userId, userId, orderStatusList, pageable);
+        List<Order> orders = orderRepository.findByUserIdAndStatusIn(userId, orderStatusList, pageable);
         return orders.stream().map(this::mapEntityToDto).toList();
     }
 
@@ -126,7 +126,7 @@ public class OrderService {
         return Stream.of(OrderStatus.values())
                 .filter(c -> c.getCode().equals(code))
                 .findFirst()
-                .orElseThrow(IllegalArgumentException::new);
+                .orElseThrow(()->new IllegalArgumentException("invalid status"));
     }
 
     private boolean validateBuyer(Order order, Long userId) {
@@ -153,7 +153,7 @@ public class OrderService {
 
     // scheduled tasks
     public void checkOrderDeadline(LocalDateTime currTime) {
-        for (Order order: orderRepository.findDueOrders(currTime, OrderStatus.AWAITING_PAYMENT, OrderStatus.AWAITING_SHIPMENT)) {
+        for (Order order: orderRepository.findDueOrders(currTime, OrderStatus.AWAITING_PAYMENT, OrderStatus.AWAITING_SHIPPING)) {
             updateOrderStatusToDue(order);
 
             log.info("order-{} failed, publish OrderStatusUpdatedEvent to orderNotificationTopic...", order.getId());

@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 public enum OrderStatus {
-    AWAITING_PAYMENT("awaiting_payment"), AWAITING_SHIPMENT("awaiting_shipment"), FULFILLED("fulfilled"), PAYMENT_DUE("payment_due"), SHIPPING_DUE("shipping_due");
+    AWAITING_PAYMENT("awaiting_payment"), AWAITING_SHIPPING("awaiting_shipping"), FULFILLED("fulfilled"), PAYMENT_DUE("payment_due"), SHIPPING_DUE("shipping_due");
 
     private final String code;
     private static final OrderStatus[] VALUES = values();
