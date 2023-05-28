@@ -16,7 +16,7 @@ import java.util.Map;
 public class AuctionControllerAdvice {
 
     // ExceptionHandler for invalid user sending EditItemRequest
-    @ExceptionHandler({InvalidSellerException.class, CannotDeleteAuctionException.class, InvalidPlaceBidRequestException.class})
+    @ExceptionHandler({InvalidSellerException.class, CannotDeleteAuctionException.class, InvalidPlaceBidRequestException.class, IllegalArgumentException.class})
     public ResponseEntity<Object> handleInvalidSellerException(RuntimeException exception) {
         Map<String, Object> response = new HashMap<>();
         response.put("error", exception.getMessage());

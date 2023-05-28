@@ -131,23 +131,20 @@ public class AuctionService {
     }
 
     public String placeBid(Long auctionId, Long userId, PlaceBidRequest request) {
+        LocalDateTime currTime = LocalDateTime.now();
         Auction auction = auctionRepository.findById(auctionId).orElseThrow(()-> new AuctionNotFoundException(auctionId));
-        StringBuilder errorMessage = new StringBuilder();
+
         boolean validBidder = validateBidder(auction.getSellerId(), userId);
         boolean validBidPrice = validateBidPrice(auction, request);
         if (!validBidder) {
-            errorMessage.append("sellers cannot place bids on their own auctions. ");
+            throw new InvalidPlaceBidRequestException("sellers cannot place bids on their own auctions.");
         }
-        if (!auction.getStatus().equals(AuctionStatus.ACTIVE)) {
-            errorMessage.append("cannot place bids on expired auction. ");
+        if (!auction.getStatus().equals(AuctionStatus.ACTIVE) || currTime.isAfter(auction.getEndAt())) {
+            throw new InvalidPlaceBidRequestException("cannot place bids on ended auction.");
         }
         if (!validBidPrice) {
-            errorMessage.append("bid price lower than current price");
+            throw new InvalidPlaceBidRequestException("bid price must be greater than the current price.");
         }
-        if (!errorMessage.isEmpty()) {
-            throw new InvalidPlaceBidRequestException(errorMessage.toString());
-        }
-        LocalDateTime currTime = LocalDateTime.now();
         auction.getBids().add(
                 Bid.builder()
                         .bidderId(userId)
@@ -166,6 +163,7 @@ public class AuctionService {
 
         kafkaTemplate.send("auctionNotificationTopic", BidPlacedEvent.builder()
                 .id(UUID.randomUUID())
+                .sellerId(auction.getSellerId())
                 .auctionName(auction.getItem().getName())
                 .currentPrice(auction.getCurrentPrice())
                 .timestamp(currTime)
@@ -199,7 +197,7 @@ public class AuctionService {
         return Stream.of(AuctionStatus.values())
                 .filter(c -> c.getCode().equals(code))
                 .findFirst()
-                .orElseThrow(IllegalArgumentException::new);
+                .orElseThrow(()-> new IllegalArgumentException("invalid status"));
     }
 
 
